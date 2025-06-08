@@ -1163,6 +1163,8 @@ PODS:
     - React-logger (= 0.74.0)
     - React-perflogger (= 0.74.0)
     - React-utils (= 0.74.0)
+  - RNAppleHealthKit (1.7.0):
+    - React
   - SocketRocket (0.7.0)
   - Yoga (0.0.0)
 
@@ -1222,6 +1224,7 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNAppleHealthKit (from `../node_modules/react-native-health`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1336,6 +1339,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/utils"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNAppleHealthKit:
+    :path: "../node_modules/react-native-health"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1393,6 +1398,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 5ae8dc5d3195a1582ad076493ab6d9d3fd7c1287
   React-utils: c2c26076afce4fcf8d3d81dd75f8099a5a988383
   ReactCommon: b1dfa365018c636c73437981ee235c1a35f0e34f
+  RNAppleHealthKit: 86ef7ab70f762b802f5c5289372de360cca701f9
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: 56f906bf6c11c931588191dde1229fd3e4e3d557
 
