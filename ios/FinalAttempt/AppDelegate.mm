@@ -2,6 +2,9 @@
 
 #import <React/RCTBundleURLProvider.h>
 
+/* Add the library import for HealthKit background processing */
+#import "RCTAppleHealthKit.h"
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -11,7 +14,14 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
 
-  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  BOOL success = [super application:application didFinishLaunchingWithOptions:launchOptions];
+  
+  if (success) {
+    /* Add Background initializer for HealthKit */
+    [[RCTAppleHealthKit new] initializeBackgroundObservers:self.bridge];
+  }
+  
+  return success;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge

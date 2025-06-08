@@ -16,10 +16,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import useHealthData from './src/hooks/useHealthData';
+import useBackgroundHealthObserver from './src/services/backgroundHealthObserver';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const { steps, distance, flights, hasPermissions } = useHealthData();
+
+  // Initialize background observers for real-time health data updates
+  useBackgroundHealthObserver();
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#000' : '#f5f5f5',
@@ -56,7 +60,7 @@ function App(): React.JSX.Element {
           Health Dashboard
         </Text>
         <Text style={[styles.subtitle, { color: textColor }]}>
-          Today's Activity
+          Today's Activity • Live Updates
         </Text>
       </View>
 
@@ -88,7 +92,7 @@ function App(): React.JSX.Element {
 
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: textColor }]}>
-          Data synced from Apple Health
+          Data synced from Apple Health • Background updates enabled
         </Text>
       </View>
     </SafeAreaView>
