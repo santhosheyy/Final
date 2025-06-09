@@ -5,7 +5,8 @@ export const Colors = {
   danger: '#FF3B30',
   orange: '#FF6B35',
   teal: '#00D4AA',
-  purple: '#5856D6', // NEW: For height
+  purple: '#5856D6',
+  magenta: '#AF52DE', // NEW: For weight
   
   light: {
     background: '#f5f5f5',

@@ -42,6 +42,13 @@ export const MetricConfig = [
     formatter: (value: number) => Math.round(value).toString(),
   },
   {
+    key: 'weight',
+    label: 'Weight',
+    unit: 'kg',
+    color: '#AF52DE',
+    formatter: (value: number) => value.toFixed(1),
+  },
+  {
     key: 'calories',
     label: 'Active Calories',
     unit: 'kcal',

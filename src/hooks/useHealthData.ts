@@ -17,6 +17,7 @@ interface HealthData {
   totalCalories: number;
   standTime: number;
   height: number;
+  weight: number;
   hasPermissions: boolean;
   isHealthKitAvailable: boolean;
 }
@@ -31,6 +32,7 @@ const useHealthData = (): HealthData => {
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [standTime, setStandTime] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
+  const [weight, setWeight] = useState<number>(0);
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [isHealthKitAvailable, setIsHealthKitAvailable] = useState<boolean>(false);
 
@@ -167,7 +169,7 @@ const useHealthData = (): HealthData => {
       }
     });
 
-    // Get latest height - FIXED with HealthUnit type
+    // Get latest height
     const heightOptions = {
       unit: 'cm' as HealthUnit
     };
@@ -179,6 +181,20 @@ const useHealthData = (): HealthData => {
       }
       setHeight(results.value || 0);
       console.log('Height data:', results);
+    });
+
+    // Get latest weight - NEW
+    const weightOptions = {
+      unit: 'kg' as HealthUnit
+    };
+
+    AppleHealthKit.getLatestWeight(weightOptions, (error: string, results: HealthValue) => {
+      if (error) {
+        console.log('Error getting latest weight:', error);
+        return;
+      }
+      setWeight(results.value || 0);
+      console.log('Weight data:', results);
     });
 
     // Get active calories burned
@@ -229,6 +245,7 @@ const useHealthData = (): HealthData => {
     totalCalories, 
     standTime, 
     height, 
+    weight, 
     hasPermissions, 
     isHealthKitAvailable 
   };
