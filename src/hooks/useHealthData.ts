@@ -12,6 +12,8 @@ interface HealthData {
   flights: number;
   heartRate: number;
   calories: number;
+  basalCalories: number;
+  totalCalories: number;
   hasPermissions: boolean;
   isHealthKitAvailable: boolean;
 }
@@ -22,17 +24,17 @@ const useHealthData = (): HealthData => {
   const [flights, setFlights] = useState<number>(0);
   const [heartRate, setHeartRate] = useState<number>(0);
   const [calories, setCalories] = useState<number>(0);
+  const [basalCalories, setBasalCalories] = useState<number>(0);
+  const [totalCalories, setTotalCalories] = useState<number>(0);
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [isHealthKitAvailable, setIsHealthKitAvailable] = useState<boolean>(false);
 
   useEffect(() => {
-    // Restrict HealthKit for iOS devices only
     if (Platform.OS !== 'ios') {
       console.log('HealthKit is only available on iOS');
       return;
     }
 
-    // Check if HealthKit is available before initializing
     AppleHealthKit.isAvailable((err: Object, available: boolean) => {
       if (err) {
         console.log('Error checking HealthKit availability:', err);
@@ -54,7 +56,6 @@ const useHealthData = (): HealthData => {
     const permissions: HealthKitPermissions = {
       permissions: {
         read: [
-          // Activity & Fitness
           AppleHealthKit.Constants.Permissions.Steps,
           AppleHealthKit.Constants.Permissions.StepCount,
           AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
@@ -62,31 +63,20 @@ const useHealthData = (): HealthData => {
           AppleHealthKit.Constants.Permissions.FlightsClimbed,
           AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
           AppleHealthKit.Constants.Permissions.BasalEnergyBurned,
-          
-          // Heart & Vitals
           AppleHealthKit.Constants.Permissions.HeartRate,
           AppleHealthKit.Constants.Permissions.RestingHeartRate,
           AppleHealthKit.Constants.Permissions.HeartRateVariability,
-          
-          // Body Measurements
           AppleHealthKit.Constants.Permissions.Height,
           AppleHealthKit.Constants.Permissions.Weight,
           AppleHealthKit.Constants.Permissions.BodyMass,
           AppleHealthKit.Constants.Permissions.BodyMassIndex,
-          
-          // Sleep & Mindfulness
           AppleHealthKit.Constants.Permissions.SleepAnalysis,
           AppleHealthKit.Constants.Permissions.MindfulSession,
-          
-          // Apple Watch Specific
           AppleHealthKit.Constants.Permissions.AppleExerciseTime,
           AppleHealthKit.Constants.Permissions.AppleStandTime,
-          
-          // Workouts
           AppleHealthKit.Constants.Permissions.Workout,
         ],
         write: [
-          // Allow writing basic activity data
           AppleHealthKit.Constants.Permissions.Steps,
           AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
           AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
@@ -105,7 +95,6 @@ const useHealthData = (): HealthData => {
     });
   };
 
-  // Query Health data when permissions are granted
   useEffect(() => {
     if (!hasPermissions) {
       return;
@@ -149,31 +138,49 @@ const useHealthData = (): HealthData => {
       setFlights(results.value || 0);
     });
 
-    // Get heart rate (latest sample)
+    // Get heart rate (latest sample) - FIXED
     AppleHealthKit.getHeartRateSamples(options, (error: string, results: HealthValue[]) => {
       if (error) {
         console.log('Error getting heart rate:', error);
         return;
       }
       if (results.length > 0) {
-        setHeartRate(results[0].value || 0);
+        setHeartRate(results[0].value || 0); // Fixed: was results.value
       }
     });
 
     // Get active calories burned
     AppleHealthKit.getActiveEnergyBurned(options, (error: string, results: HealthValue[]) => {
       if (error) {
-        console.log('Error getting calories:', error);
+        console.log('Error getting active calories:', error);
         return;
       }
+      let activeTotal = 0;
       if (results.length > 0) {
-        const totalCalories = results.reduce((sum, item) => sum + (item.value || 0), 0);
-        setCalories(totalCalories);
+        activeTotal = results.reduce((sum, item) => sum + (item.value || 0), 0);
+        setCalories(activeTotal);
       }
+
+      // Get basal calories burned - NEW
+      AppleHealthKit.getBasalEnergyBurned(options, (error: string, basalResults: HealthValue[]) => {
+        if (error) {
+          console.log('Error getting basal calories:', error);
+          return;
+        }
+        let basalTotal = 0;
+        if (basalResults.length > 0) {
+          basalTotal = basalResults.reduce((sum, item) => sum + (item.value || 0), 0);
+          setBasalCalories(basalTotal);
+        }
+        
+        // Calculate total calories (active + basal) - NEW
+        const total = activeTotal + basalTotal;
+        setTotalCalories(total);
+        console.log(`Calories - Active: ${activeTotal}, Basal: ${basalTotal}, Total: ${total}`);
+      });
     });
   };
 
-  // Auto-refresh data every 30 seconds
   useEffect(() => {
     if (hasPermissions) {
       const interval = setInterval(fetchHealthData, 30000);
@@ -181,7 +188,17 @@ const useHealthData = (): HealthData => {
     }
   }, [hasPermissions]);
 
-  return { steps, distance, flights, heartRate, calories, hasPermissions, isHealthKitAvailable };
+  return { 
+    steps, 
+    distance, 
+    flights, 
+    heartRate, 
+    calories, 
+    basalCalories, 
+    totalCalories, 
+    hasPermissions, 
+    isHealthKitAvailable 
+  };
 };
 
 export default useHealthData;

@@ -32,7 +32,7 @@ export const AppStyles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 10,
     paddingBottom: 30,
-    gap: 16,
+    gap: 12, // Reduced gap for more cards
   },
   footer: {
     paddingHorizontal: 24,

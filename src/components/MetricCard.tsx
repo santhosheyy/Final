@@ -33,7 +33,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
 const styles = StyleSheet.create({
   metricCard: {
-    padding: 20,
+    padding: 16, // Reduced padding for more cards
     borderRadius: 16,
     alignItems: 'center',
     shadowColor: Colors.shadow.color,
@@ -44,22 +44,23 @@ const styles = StyleSheet.create({
     shadowOpacity: Colors.shadow.opacity,
     shadowRadius: Colors.shadow.radius,
     elevation: Colors.shadow.elevation,
-    minHeight: 120,
+    minHeight: 100, // Reduced height for more cards
   },
   metricLabel: {
-    fontSize: 16,
+    fontSize: 14, // Slightly smaller
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
     opacity: 0.7,
+    textAlign: 'center',
   },
   metricValue: {
-    fontSize: 42,
+    fontSize: 32, // Reduced for more cards
     fontWeight: 'bold',
     marginBottom: 4,
     textAlign: 'center',
   },
   metricUnit: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     opacity: 0.6,
   },
