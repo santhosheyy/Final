@@ -3,7 +3,8 @@ import { Platform } from 'react-native';
 import AppleHealthKit, { 
   HealthValue, 
   HealthKitPermissions,
-  HealthInputOptions 
+  HealthInputOptions,
+  HealthUnit
 } from 'react-native-health';
 
 interface HealthData {
@@ -14,6 +15,8 @@ interface HealthData {
   calories: number;
   basalCalories: number;
   totalCalories: number;
+  standTime: number;
+  height: number;
   hasPermissions: boolean;
   isHealthKitAvailable: boolean;
 }
@@ -26,6 +29,8 @@ const useHealthData = (): HealthData => {
   const [calories, setCalories] = useState<number>(0);
   const [basalCalories, setBasalCalories] = useState<number>(0);
   const [totalCalories, setTotalCalories] = useState<number>(0);
+  const [standTime, setStandTime] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [isHealthKitAvailable, setIsHealthKitAvailable] = useState<boolean>(false);
 
@@ -138,15 +143,42 @@ const useHealthData = (): HealthData => {
       setFlights(results.value || 0);
     });
 
-    // Get heart rate (latest sample) - FIXED
+    // Get heart rate (latest sample)
     AppleHealthKit.getHeartRateSamples(options, (error: string, results: HealthValue[]) => {
       if (error) {
         console.log('Error getting heart rate:', error);
         return;
       }
       if (results.length > 0) {
-        setHeartRate(results[0].value || 0); // Fixed: was results.value
+        setHeartRate(results[0].value || 0);
       }
+    });
+
+    // Get Apple Stand Time
+    AppleHealthKit.getAppleStandTime(options, (error: string, results: HealthValue[]) => {
+      if (error) {
+        console.log('Error getting stand time:', error);
+        return;
+      }
+      let totalStandTime = 0;
+      if (results.length > 0) {
+        totalStandTime = results.reduce((sum, item) => sum + (item.value || 0), 0);
+        setStandTime(totalStandTime);
+      }
+    });
+
+    // Get latest height - FIXED with HealthUnit type
+    const heightOptions = {
+      unit: 'cm' as HealthUnit
+    };
+
+    AppleHealthKit.getLatestHeight(heightOptions, (error: string, results: HealthValue) => {
+      if (error) {
+        console.log('Error getting latest height:', error);
+        return;
+      }
+      setHeight(results.value || 0);
+      console.log('Height data:', results);
     });
 
     // Get active calories burned
@@ -161,7 +193,7 @@ const useHealthData = (): HealthData => {
         setCalories(activeTotal);
       }
 
-      // Get basal calories burned - NEW
+      // Get basal calories burned
       AppleHealthKit.getBasalEnergyBurned(options, (error: string, basalResults: HealthValue[]) => {
         if (error) {
           console.log('Error getting basal calories:', error);
@@ -173,10 +205,9 @@ const useHealthData = (): HealthData => {
           setBasalCalories(basalTotal);
         }
         
-        // Calculate total calories (active + basal) - NEW
+        // Calculate total calories (active + basal)
         const total = activeTotal + basalTotal;
         setTotalCalories(total);
-        console.log(`Calories - Active: ${activeTotal}, Basal: ${basalTotal}, Total: ${total}`);
       });
     });
   };
@@ -196,6 +227,8 @@ const useHealthData = (): HealthData => {
     calories, 
     basalCalories, 
     totalCalories, 
+    standTime, 
+    height, 
     hasPermissions, 
     isHealthKitAvailable 
   };

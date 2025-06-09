@@ -3,7 +3,9 @@ export const Colors = {
   success: '#34C759',
   warning: '#FF9500',
   danger: '#FF3B30',
-  orange: '#FF6B35', // New color for total calories
+  orange: '#FF6B35',
+  teal: '#00D4AA',
+  purple: '#5856D6', // NEW: For height
   
   light: {
     background: '#f5f5f5',

@@ -43,7 +43,7 @@ const useBackgroundHealthObserver = () => {
           console.log(`❌ ${type} observer setup failed:`, error);
         }
       );
-
+      
       // Listen for new data
       const newDataListener = eventEmitter.addListener(
         `healthKit:${type}:new`,
@@ -52,7 +52,7 @@ const useBackgroundHealthObserver = () => {
           await fetchLatestHealthData(type);
         }
       );
-
+      
       // Listen for errors
       const errorListener = eventEmitter.addListener(
         `healthKit:${type}:failure`,
@@ -68,7 +68,6 @@ const useBackgroundHealthObserver = () => {
       listeners.forEach(listener => listener.remove());
     };
   }, []);
-
   const fetchLatestHealthData = async (type: string) => {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());

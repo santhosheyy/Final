@@ -11,7 +11,7 @@ export const MetricConfig = [
     label: 'Distance',
     unit: 'km',
     color: '#34C759',
-    formatter: (value: number) => (value / 1000).toFixed(2), // Keep 2 decimals for km
+    formatter: (value: number) => (value / 1000).toFixed(2),
   },
   {
     key: 'flights',
@@ -25,27 +25,41 @@ export const MetricConfig = [
     label: 'Heart Rate',
     unit: 'bpm',
     color: '#FF3B30',
-    formatter: (value: number) => Math.round(value).toString(), // Whole numbers only
+    formatter: (value: number) => Math.round(value).toString(),
+  },
+  {
+    key: 'standTime',
+    label: 'Stand Time',
+    unit: 'minutes',
+    color: '#00D4AA',
+    formatter: (value: number) => Math.round(value / 60).toString(),
+  },
+  {
+    key: 'height',
+    label: 'Height',
+    unit: 'cm',
+    color: '#5856D6',
+    formatter: (value: number) => Math.round(value).toString(),
   },
   {
     key: 'calories',
     label: 'Active Calories',
     unit: 'kcal',
     color: '#FF9500',
-    formatter: (value: number) => Math.round(value).toString(), // Whole numbers only
+    formatter: (value: number) => Math.round(value).toString(),
   },
   {
     key: 'basalCalories',
     label: 'Resting Calories',
     unit: 'kcal',
     color: '#34C759',
-    formatter: (value: number) => Math.round(value).toString(), // Whole numbers only
+    formatter: (value: number) => Math.round(value).toString(),
   },
   {
     key: 'totalCalories',
     label: 'Total Calories',
     unit: 'kcal',
     color: '#FF6B35',
-    formatter: (value: number) => Math.round(value).toString(), // Whole numbers only
+    formatter: (value: number) => Math.round(value).toString(),
   },
 ];
