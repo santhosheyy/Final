@@ -6,7 +6,8 @@ export const Colors = {
   orange: '#FF6B35',
   teal: '#00D4AA',
   purple: '#5856D6',
-  magenta: '#AF52DE', // NEW: For weight
+  magenta: '#AF52DE',
+  pink: '#FF2D92', // NEW: For biological sex
   
   light: {
     background: '#f5f5f5',

@@ -33,6 +33,12 @@ function App(): React.JSX.Element {
   const backgroundStyle = { backgroundColor: theme.background };
   const textColor = theme.text;
 
+  // Helper function to safely get metric value
+  const getMetricValue = (key: string) => {
+    const value = (healthData as any)[key];
+    return value !== undefined && value !== null ? value : (key === 'biologicalSex' ? 'unknown' : 0);
+  };
+
   if (!healthData.hasPermissions) {
     return (
       <SafeAreaView style={[AppStyles.container, backgroundStyle]}>
@@ -64,7 +70,7 @@ function App(): React.JSX.Element {
             <MetricCard
               key={metric.key}
               label={metric.label}
-              value={metric.formatter(healthData[metric.key as keyof typeof healthData] as number)}
+              value={metric.formatter(getMetricValue(metric.key))}
               unit={metric.unit}
               color={metric.color}
               isDarkMode={isDarkMode}

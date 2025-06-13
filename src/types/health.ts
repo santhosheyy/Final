@@ -1,23 +1,31 @@
 export interface HealthMetrics {
-    steps: number;
-    distance: number;
-    flights: number;
-    calories?: number;
-    heartRate?: number;
-  }
-  
-  export interface HealthHookReturn {
-    data: HealthMetrics;
-    isLoading: boolean;
-    hasPermissions: boolean;
-    error: string | null;
-    refreshData: () => void;
-  }
-  
-  export type HealthPermission = 
-    | 'Steps'
-    | 'DistanceWalkingRunning'
-    | 'FlightsClimbed'
-    | 'HeartRate'
-    | 'ActiveEnergyBurned';
-  
+  steps: number;
+  distance: number;
+  flights: number;
+  heartRate: number;
+  standTime: number;
+  height: number;
+  weight: number;
+  biologicalSex: string;
+  calories: number;
+  basalCalories: number;
+  totalCalories: number;
+  hasPermissions: boolean;
+  isLoading: boolean;
+  error: string | null;
+  refreshData: () => void;
+}
+
+export interface HealthHookReturn extends HealthMetrics {}
+
+export type HealthPermission = 
+  | 'Steps'
+  | 'DistanceWalkingRunning'
+  | 'FlightsClimbed'
+  | 'HeartRate'
+  | 'ActiveEnergyBurned'
+  | 'BasalEnergyBurned'
+  | 'AppleStandTime'
+  | 'Height'
+  | 'BodyMass'
+  | 'BiologicalSex';

@@ -49,6 +49,16 @@ export const MetricConfig = [
     formatter: (value: number) => value.toFixed(1),
   },
   {
+    key: 'biologicalSex',
+    label: 'Biological Sex',
+    unit: '',
+    color: '#FF2D92',
+    formatter: (value: string | number) => {
+      const stringValue = typeof value === 'string' ? value : 'unknown';
+      return stringValue.charAt(0).toUpperCase() + stringValue.slice(1);
+    },
+  },
+  {
     key: 'calories',
     label: 'Active Calories',
     unit: 'kcal',

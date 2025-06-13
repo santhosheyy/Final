@@ -17,7 +17,9 @@ interface HealthData {
   totalCalories: number;
   standTime: number;
   height: number;
+  heightSamples: HealthValue[];
   weight: number;
+  biologicalSex: string;
   hasPermissions: boolean;
   isHealthKitAvailable: boolean;
 }
@@ -32,7 +34,9 @@ const useHealthData = (): HealthData => {
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [standTime, setStandTime] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
+  const [heightSamples, setHeightSamples] = useState<HealthValue[]>([]);
   const [weight, setWeight] = useState<number>(0);
+  const [biologicalSex, setBiologicalSex] = useState<string>('unknown');
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [isHealthKitAvailable, setIsHealthKitAvailable] = useState<boolean>(false);
 
@@ -77,6 +81,7 @@ const useHealthData = (): HealthData => {
           AppleHealthKit.Constants.Permissions.Weight,
           AppleHealthKit.Constants.Permissions.BodyMass,
           AppleHealthKit.Constants.Permissions.BodyMassIndex,
+          AppleHealthKit.Constants.Permissions.BiologicalSex,
           AppleHealthKit.Constants.Permissions.SleepAnalysis,
           AppleHealthKit.Constants.Permissions.MindfulSession,
           AppleHealthKit.Constants.Permissions.AppleExerciseTime,
@@ -87,6 +92,8 @@ const useHealthData = (): HealthData => {
           AppleHealthKit.Constants.Permissions.Steps,
           AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
           AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
+          AppleHealthKit.Constants.Permissions.Height,
+          AppleHealthKit.Constants.Permissions.Weight,
         ],
       },
     };
@@ -116,6 +123,16 @@ const useHealthData = (): HealthData => {
     const options: HealthInputOptions = {
       startDate: startOfDay.toISOString(),
       endDate: today.toISOString(),
+    };
+
+    // Height samples options (last 30 days for better data)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const heightSamplesOptions: HealthInputOptions = {
+      startDate: thirtyDaysAgo.toISOString(),
+      endDate: today.toISOString(),
+      unit: 'cm' as HealthUnit,
     };
 
     // Get steps
@@ -169,21 +186,23 @@ const useHealthData = (): HealthData => {
       }
     });
 
-    // Get latest height
-    const heightOptions = {
-      unit: 'cm' as HealthUnit
-    };
-
-    AppleHealthKit.getLatestHeight(heightOptions, (error: string, results: HealthValue) => {
+    // Get height samples
+    AppleHealthKit.getHeightSamples(heightSamplesOptions, (error: string, results: HealthValue[]) => {
       if (error) {
-        console.log('Error getting latest height:', error);
+        console.log('Error getting height samples:', error);
         return;
       }
-      setHeight(results.value || 0);
-      console.log('Height data:', results);
+      setHeightSamples(results);
+      
+      // Calculate average height from samples for display
+      if (results.length > 0) {
+        const averageHeight = results.reduce((sum, sample) => sum + (sample.value || 0), 0) / results.length;
+        setHeight(averageHeight);
+        console.log(`Height samples: ${results.length} measurements, average: ${averageHeight.toFixed(1)}cm`);
+      }
     });
 
-    // Get latest weight - NEW
+    // Get latest weight
     const weightOptions = {
       unit: 'kg' as HealthUnit
     };
@@ -195,6 +214,16 @@ const useHealthData = (): HealthData => {
       }
       setWeight(results.value || 0);
       console.log('Weight data:', results);
+    });
+
+    // Get biological sex - FIXED
+    AppleHealthKit.getBiologicalSex({}, (error: Object, results: Object) => {
+      if (error) {
+        console.log('Error getting biological sex:', error);
+        return;
+      }
+      setBiologicalSex((results as any).value || 'unknown');
+      console.log('Biological sex data:', results);
     });
 
     // Get active calories burned
@@ -245,7 +274,9 @@ const useHealthData = (): HealthData => {
     totalCalories, 
     standTime, 
     height, 
+    heightSamples, 
     weight, 
+    biologicalSex, 
     hasPermissions, 
     isHealthKitAvailable 
   };
