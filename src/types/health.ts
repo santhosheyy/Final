@@ -7,6 +7,7 @@ export interface HealthMetrics {
   height: number;
   weight: number;
   biologicalSex: string;
+  age: number;
   calories: number;
   basalCalories: number;
   totalCalories: number;
@@ -18,6 +19,11 @@ export interface HealthMetrics {
 
 export interface HealthHookReturn extends HealthMetrics {}
 
+export interface HealthDateOfBirth {
+  value: string;
+  age: number;
+}
+
 export type HealthPermission = 
   | 'Steps'
   | 'DistanceWalkingRunning'
@@ -28,4 +34,5 @@ export type HealthPermission =
   | 'AppleStandTime'
   | 'Height'
   | 'BodyMass'
-  | 'BiologicalSex';
+  | 'BiologicalSex'
+  | 'DateOfBirth';

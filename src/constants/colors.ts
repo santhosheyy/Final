@@ -7,7 +7,8 @@ export const Colors = {
   teal: '#00D4AA',
   purple: '#5856D6',
   magenta: '#AF52DE',
-  pink: '#FF2D92', // NEW: For biological sex
+  pink: '#FF2D92', // For biological sex
+  green: '#32D74B', // NEW: For age
   
   light: {
     background: '#f5f5f5',
@@ -30,3 +31,9 @@ export const Colors = {
     elevation: 4,
   },
 };
+
+
+
+// DOB done
+// need to run and check
+// need to then commit codes

@@ -59,6 +59,13 @@ export const MetricConfig = [
     },
   },
   {
+    key: 'age',
+    label: 'Age',
+    unit: 'years',
+    color: '#32D74B',
+    formatter: (value: number) => value.toString(),
+  },
+  {
     key: 'calories',
     label: 'Active Calories',
     unit: 'kcal',

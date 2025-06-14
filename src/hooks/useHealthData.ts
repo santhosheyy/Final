@@ -1,284 +1,345 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import AppleHealthKit, { HealthKitPermissions } from 'react-native-health';
 import { Platform } from 'react-native';
-import AppleHealthKit, { 
-  HealthValue, 
-  HealthKitPermissions,
-  HealthInputOptions,
-  HealthUnit
-} from 'react-native-health';
+import { HealthDateOfBirth } from '../types/health';
 
-interface HealthData {
-  steps: number;
-  distance: number;
-  flights: number;
-  heartRate: number;
-  calories: number;
-  basalCalories: number;
-  totalCalories: number;
-  standTime: number;
-  height: number;
-  heightSamples: HealthValue[];
-  weight: number;
-  biologicalSex: string;
-  hasPermissions: boolean;
-  isHealthKitAvailable: boolean;
-}
-
-const useHealthData = (): HealthData => {
+const useHealthData = () => {
   const [steps, setSteps] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
   const [flights, setFlights] = useState<number>(0);
   const [heartRate, setHeartRate] = useState<number>(0);
+  const [standTime, setStandTime] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
+  const [weight, setWeight] = useState<number>(0);
+  const [biologicalSex, setBiologicalSex] = useState<string>('unknown');
+  const [age, setAge] = useState<number>(0);
   const [calories, setCalories] = useState<number>(0);
   const [basalCalories, setBasalCalories] = useState<number>(0);
   const [totalCalories, setTotalCalories] = useState<number>(0);
-  const [standTime, setStandTime] = useState<number>(0);
-  const [height, setHeight] = useState<number>(0);
-  const [heightSamples, setHeightSamples] = useState<HealthValue[]>([]);
-  const [weight, setWeight] = useState<number>(0);
-  const [biologicalSex, setBiologicalSex] = useState<string>('unknown');
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
-  const [isHealthKitAvailable, setIsHealthKitAvailable] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAvailable, setIsAvailable] = useState<boolean>(false);
 
-  useEffect(() => {
+  const permissions: HealthKitPermissions = {
+    permissions: {
+      read: [
+        AppleHealthKit.Constants.Permissions.Steps,
+        AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
+        AppleHealthKit.Constants.Permissions.FlightsClimbed,
+        AppleHealthKit.Constants.Permissions.HeartRate,
+        AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
+        AppleHealthKit.Constants.Permissions.BasalEnergyBurned,
+        AppleHealthKit.Constants.Permissions.AppleStandTime,
+        AppleHealthKit.Constants.Permissions.Height,
+        AppleHealthKit.Constants.Permissions.Weight,
+        AppleHealthKit.Constants.Permissions.BiologicalSex,
+        AppleHealthKit.Constants.Permissions.DateOfBirth,
+      ],
+      write: [
+        AppleHealthKit.Constants.Permissions.Steps,
+        AppleHealthKit.Constants.Permissions.Weight,
+        AppleHealthKit.Constants.Permissions.Height,
+      ],
+    },
+  };
+
+  const initHealthKit = useCallback(() => {
     if (Platform.OS !== 'ios') {
-      console.log('HealthKit is only available on iOS');
+      setError('HealthKit is only available on iOS');
+      setIsLoading(false);
       return;
     }
 
-    AppleHealthKit.isAvailable((err: Object, available: boolean) => {
-      if (err) {
-        console.log('Error checking HealthKit availability:', err);
+    AppleHealthKit.isAvailable((error: Object, available: boolean) => {
+      if (error) {
+        setError(`HealthKit not available: ${error}`);
+        setIsLoading(false);
         return;
       }
-      
-      setIsHealthKitAvailable(available);
-      
-      if (available) {
-        console.log('HealthKit is available - initializing...');
-        initializeHealthKit();
-      } else {
-        console.log('HealthKit is not available on this device');
+
+      if (!available) {
+        setError('HealthKit is not available on this device');
+        setIsLoading(false);
+        return;
       }
+
+      setIsAvailable(true);
+
+      AppleHealthKit.initHealthKit(permissions, (initError: Object) => {
+        if (initError) {
+          setError(`Failed to initialize HealthKit: ${initError}`);
+          setIsLoading(false);
+          return;
+        }
+
+        setHasPermissions(true);
+        setError(null);
+        fetchAllData();
+      });
     });
   }, []);
 
-  const initializeHealthKit = () => {
-    const permissions: HealthKitPermissions = {
-      permissions: {
-        read: [
-          AppleHealthKit.Constants.Permissions.Steps,
-          AppleHealthKit.Constants.Permissions.StepCount,
-          AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
-          AppleHealthKit.Constants.Permissions.DistanceCycling,
-          AppleHealthKit.Constants.Permissions.FlightsClimbed,
-          AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
-          AppleHealthKit.Constants.Permissions.BasalEnergyBurned,
-          AppleHealthKit.Constants.Permissions.HeartRate,
-          AppleHealthKit.Constants.Permissions.RestingHeartRate,
-          AppleHealthKit.Constants.Permissions.HeartRateVariability,
-          AppleHealthKit.Constants.Permissions.Height,
-          AppleHealthKit.Constants.Permissions.Weight,
-          AppleHealthKit.Constants.Permissions.BodyMass,
-          AppleHealthKit.Constants.Permissions.BodyMassIndex,
-          AppleHealthKit.Constants.Permissions.BiologicalSex,
-          AppleHealthKit.Constants.Permissions.SleepAnalysis,
-          AppleHealthKit.Constants.Permissions.MindfulSession,
-          AppleHealthKit.Constants.Permissions.AppleExerciseTime,
-          AppleHealthKit.Constants.Permissions.AppleStandTime,
-          AppleHealthKit.Constants.Permissions.Workout,
-        ],
-        write: [
-          AppleHealthKit.Constants.Permissions.Steps,
-          AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
-          AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
-          AppleHealthKit.Constants.Permissions.Height,
-          AppleHealthKit.Constants.Permissions.Weight,
-        ],
-      },
-    };
-
-    AppleHealthKit.initHealthKit(permissions, (error: string) => {
-      if (error) {
-        console.log('[ERROR] Cannot grant permissions!', error);
-        return;
-      }
-      
-      console.log('HealthKit initialized successfully');
-      setHasPermissions(true);
-    });
-  };
-
-  useEffect(() => {
-    if (!hasPermissions) {
-      return;
-    }
-    fetchHealthData();
-  }, [hasPermissions]);
-
-  const fetchHealthData = (): void => {
+  const getSteps = () => {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
-    const options: HealthInputOptions = {
+    const options = {
       startDate: startOfDay.toISOString(),
       endDate: today.toISOString(),
     };
 
-    // Height samples options (last 30 days for better data)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const heightSamplesOptions: HealthInputOptions = {
-      startDate: thirtyDaysAgo.toISOString(),
-      endDate: today.toISOString(),
-      unit: 'cm' as HealthUnit,
-    };
-
-    // Get steps
-    AppleHealthKit.getStepCount(options, (error: string, results: HealthValue) => {
+    AppleHealthKit.getStepCount(options, (error: Object, results: any) => {
       if (error) {
         console.log('Error getting steps:', error);
         return;
       }
+      console.log('Steps:', results.value);
       setSteps(results.value || 0);
     });
+  };
 
-    // Get distance
-    AppleHealthKit.getDistanceWalkingRunning(options, (error: string, results: HealthValue) => {
+  const getDistance = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const options = {
+      startDate: startOfDay.toISOString(),
+      endDate: today.toISOString(),
+    };
+
+    AppleHealthKit.getDistanceWalkingRunning(options, (error: Object, results: any) => {
       if (error) {
         console.log('Error getting distance:', error);
         return;
       }
+      console.log('Distance:', results.value);
       setDistance(results.value || 0);
     });
+  };
 
-    // Get flights climbed
-    AppleHealthKit.getFlightsClimbed(options, (error: string, results: HealthValue) => {
+  const getFlights = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const options = {
+      startDate: startOfDay.toISOString(),
+      endDate: today.toISOString(),
+    };
+
+    AppleHealthKit.getFlightsClimbed(options, (error: Object, results: any) => {
       if (error) {
         console.log('Error getting flights:', error);
         return;
       }
+      console.log('Flights:', results.value);
       setFlights(results.value || 0);
     });
+  };
 
-    // Get heart rate (latest sample)
-    AppleHealthKit.getHeartRateSamples(options, (error: string, results: HealthValue[]) => {
+  const getHeartRate = () => {
+    const options = {
+      startDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date().toISOString(),
+    };
+
+    AppleHealthKit.getHeartRateSamples(options, (error: Object, results: any[]) => {
       if (error) {
         console.log('Error getting heart rate:', error);
         return;
       }
-      if (results.length > 0) {
-        setHeartRate(results[0].value || 0);
+      if (results && results.length > 0) {
+        const latestHeartRate = results[results.length - 1];
+        console.log('Heart Rate:', latestHeartRate.value);
+        setHeartRate(latestHeartRate.value || 0);
       }
     });
+  };
 
-    // Get Apple Stand Time
-    AppleHealthKit.getAppleStandTime(options, (error: string, results: HealthValue[]) => {
-      if (error) {
-        console.log('Error getting stand time:', error);
-        return;
-      }
-      let totalStandTime = 0;
-      if (results.length > 0) {
-        totalStandTime = results.reduce((sum, item) => sum + (item.value || 0), 0);
-        setStandTime(totalStandTime);
-      }
-    });
-
-    // Get height samples
-    AppleHealthKit.getHeightSamples(heightSamplesOptions, (error: string, results: HealthValue[]) => {
-      if (error) {
-        console.log('Error getting height samples:', error);
-        return;
-      }
-      setHeightSamples(results);
-      
-      // Calculate average height from samples for display
-      if (results.length > 0) {
-        const averageHeight = results.reduce((sum, sample) => sum + (sample.value || 0), 0) / results.length;
-        setHeight(averageHeight);
-        console.log(`Height samples: ${results.length} measurements, average: ${averageHeight.toFixed(1)}cm`);
-      }
-    });
-
-    // Get latest weight
-    const weightOptions = {
-      unit: 'kg' as HealthUnit
+  const getActiveCalories = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const options = {
+      startDate: startOfDay.toISOString(),
+      endDate: today.toISOString(),
     };
 
-    AppleHealthKit.getLatestWeight(weightOptions, (error: string, results: HealthValue) => {
-      if (error) {
-        console.log('Error getting latest weight:', error);
-        return;
-      }
-      setWeight(results.value || 0);
-      console.log('Weight data:', results);
-    });
-
-    // Get biological sex - FIXED
-    AppleHealthKit.getBiologicalSex({}, (error: Object, results: Object) => {
-      if (error) {
-        console.log('Error getting biological sex:', error);
-        return;
-      }
-      setBiologicalSex((results as any).value || 'unknown');
-      console.log('Biological sex data:', results);
-    });
-
-    // Get active calories burned
-    AppleHealthKit.getActiveEnergyBurned(options, (error: string, results: HealthValue[]) => {
+    AppleHealthKit.getActiveEnergyBurned(options, (error: Object, results: any[]) => {
       if (error) {
         console.log('Error getting active calories:', error);
         return;
       }
-      let activeTotal = 0;
-      if (results.length > 0) {
-        activeTotal = results.reduce((sum, item) => sum + (item.value || 0), 0);
-        setCalories(activeTotal);
+      if (results && results.length > 0) {
+        const totalActiveCalories = results.reduce((sum, sample) => sum + sample.value, 0);
+        console.log('Active Calories:', totalActiveCalories);
+        setCalories(totalActiveCalories);
       }
-
-      // Get basal calories burned
-      AppleHealthKit.getBasalEnergyBurned(options, (error: string, basalResults: HealthValue[]) => {
-        if (error) {
-          console.log('Error getting basal calories:', error);
-          return;
-        }
-        let basalTotal = 0;
-        if (basalResults.length > 0) {
-          basalTotal = basalResults.reduce((sum, item) => sum + (item.value || 0), 0);
-          setBasalCalories(basalTotal);
-        }
-        
-        // Calculate total calories (active + basal)
-        const total = activeTotal + basalTotal;
-        setTotalCalories(total);
-      });
     });
   };
 
-  useEffect(() => {
-    if (hasPermissions) {
-      const interval = setInterval(fetchHealthData, 30000);
-      return () => clearInterval(interval);
-    }
+  const getBasalCalories = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const options = {
+      startDate: startOfDay.toISOString(),
+      endDate: today.toISOString(),
+    };
+
+    AppleHealthKit.getBasalEnergyBurned(options, (error: Object, results: any[]) => {
+      if (error) {
+        console.log('Error getting basal calories:', error);
+        return;
+      }
+      if (results && results.length > 0) {
+        const totalBasalCalories = results.reduce((sum, sample) => sum + sample.value, 0);
+        console.log('Basal Calories:', totalBasalCalories);
+        setBasalCalories(totalBasalCalories);
+      }
+    });
+  };
+
+  const getStandTime = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const options = {
+      startDate: startOfDay.toISOString(),
+      endDate: today.toISOString(),
+    };
+
+    AppleHealthKit.getAppleStandTime(options, (error: Object, results: any[]) => {
+      if (error) {
+        console.log('Error getting stand time:', error);
+        return;
+      }
+      if (results && results.length > 0) {
+        const totalStandTime = results.reduce((sum, sample) => sum + sample.value, 0);
+        console.log('Stand Time:', totalStandTime);
+        setStandTime(totalStandTime);
+      }
+    });
+  };
+
+  const getHeight = () => {
+    const options = {
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date().toISOString(),
+    };
+
+    AppleHealthKit.getHeightSamples(options, (error: Object, results: any[]) => {
+      if (error) {
+        console.log('Error getting height:', error);
+        return;
+      }
+      if (results && results.length > 0) {
+        const heights = results.map(sample => sample.value);
+        const averageHeight = heights.reduce((sum, height) => sum + height, 0) / heights.length;
+        console.log('Height:', averageHeight);
+        setHeight(averageHeight);
+      }
+    });
+  };
+
+  const getWeight = () => {
+    const options = {
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date().toISOString(),
+    };
+
+    AppleHealthKit.getWeightSamples(options, (error: Object, results: any[]) => {
+      if (error) {
+        console.log('Error getting weight:', error);
+        return;
+      }
+      if (results && results.length > 0) {
+        const latestWeight = results[results.length - 1];
+        console.log('Weight:', latestWeight.value);
+        setWeight(latestWeight.value);
+      }
+    });
+  };
+
+  const getBiologicalSex = () => {
+    AppleHealthKit.getBiologicalSex({}, (error: Object, results: any) => {
+      if (error) {
+        console.log('Error getting biological sex:', error);
+        return;
+      }
+      console.log('Biological Sex:', results.value);
+      setBiologicalSex(results.value || 'unknown');
+    });
+  };
+
+  const getDateOfBirth = () => {
+    AppleHealthKit.getDateOfBirth({}, (error: Object, results: HealthDateOfBirth) => {
+      if (error) {
+        console.log('Error getting date of birth:', error);
+        return;
+      }
+      console.log('Date of Birth:', results);
+      setAge(results.age || 0);
+    });
+  };
+
+  const fetchAllData = useCallback(() => {
+    if (!hasPermissions) return;
+    
+    setIsLoading(true);
+    
+    getSteps();
+    getDistance();
+    getFlights();
+    getHeartRate();
+    getActiveCalories();
+    getBasalCalories();
+    getStandTime();
+    getHeight();
+    getWeight();
+    getBiologicalSex();
+    getDateOfBirth();
+    
+    setIsLoading(false);
   }, [hasPermissions]);
 
-  return { 
-    steps, 
-    distance, 
-    flights, 
-    heartRate, 
-    calories, 
-    basalCalories, 
-    totalCalories, 
-    standTime, 
-    height, 
-    heightSamples, 
-    weight, 
-    biologicalSex, 
-    hasPermissions, 
-    isHealthKitAvailable 
+  const refreshData = useCallback(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
+  useEffect(() => {
+    initHealthKit();
+  }, [initHealthKit]);
+
+  useEffect(() => {
+    if (hasPermissions) {
+      const interval = setInterval(fetchAllData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [hasPermissions, fetchAllData]);
+
+  useEffect(() => {
+    setTotalCalories(calories + basalCalories);
+  }, [calories, basalCalories]);
+
+  return {
+    steps,
+    distance,
+    flights,
+    heartRate,
+    standTime,
+    height,
+    weight,
+    biologicalSex,
+    age,
+    calories,
+    basalCalories,
+    totalCalories,
+    hasPermissions,
+    isLoading,
+    error,
+    isAvailable,
+    refreshData,
   };
 };
 

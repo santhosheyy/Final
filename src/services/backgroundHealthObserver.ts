@@ -68,6 +68,7 @@ const useBackgroundHealthObserver = () => {
       listeners.forEach(listener => listener.remove());
     };
   }, []);
+  
   const fetchLatestHealthData = async (type: string) => {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -79,7 +80,7 @@ const useBackgroundHealthObserver = () => {
 
     switch (type) {
       case 'StepCount':
-        AppleHealthKit.getStepCount(options, (error, results) => {
+        AppleHealthKit.getStepCount(options, (error: Object, results: any) => {
           if (!error) {
             console.log('Background - Latest steps:', results.value);
           }
@@ -87,7 +88,7 @@ const useBackgroundHealthObserver = () => {
         break;
         
       case 'Walking':
-        AppleHealthKit.getDistanceWalkingRunning(options, (error, results) => {
+        AppleHealthKit.getDistanceWalkingRunning(options, (error: Object, results: any) => {
           if (!error) {
             console.log('Background - Latest walking distance:', results.value);
           }
@@ -95,7 +96,7 @@ const useBackgroundHealthObserver = () => {
         break;
         
       case 'HeartRate':
-        AppleHealthKit.getHeartRateSamples(options, (error, results) => {
+        AppleHealthKit.getHeartRateSamples(options, (error: Object, results: any[]) => {
           if (!error && results.length > 0) {
             console.log('Background - Latest heart rate:', results[0].value);
           }
@@ -103,7 +104,7 @@ const useBackgroundHealthObserver = () => {
         break;
         
       case 'Running':
-        AppleHealthKit.getDistanceWalkingRunning(options, (error, results) => {
+        AppleHealthKit.getDistanceWalkingRunning(options, (error: Object, results: any) => {
           if (!error) {
             console.log('Background - Latest running distance:', results.value);
           }
@@ -111,7 +112,7 @@ const useBackgroundHealthObserver = () => {
         break;
         
       case 'ActiveEnergyBurned':
-        AppleHealthKit.getActiveEnergyBurned(options, (error, results) => {
+        AppleHealthKit.getActiveEnergyBurned(options, (error: Object, results: any[]) => {
           if (!error && results.length > 0) {
             console.log('Background - Latest calories burned:', results[0].value);
           }
@@ -119,7 +120,7 @@ const useBackgroundHealthObserver = () => {
         break;
         
       case 'StairClimbing':  // This handles flights climbed data
-        AppleHealthKit.getFlightsClimbed(options, (error, results) => {
+        AppleHealthKit.getFlightsClimbed(options, (error: Object, results: any) => {
           if (!error) {
             console.log('Background - Latest flights climbed:', results.value);
           }
@@ -127,7 +128,7 @@ const useBackgroundHealthObserver = () => {
         break;
         
       case 'Cycling':
-        AppleHealthKit.getDistanceCycling(options, (error, results) => {
+        AppleHealthKit.getDistanceCycling(options, (error: Object, results: any) => {
           if (!error) {
             console.log('Background - Latest cycling distance:', results.value);
           }
